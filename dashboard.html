@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TESI — Dashboard Ejecutivo · Financiera Cualli</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --yellow: #FDB913;
+  --yellow-dim: rgba(253,185,19,0.1);
+  --yellow-mid: rgba(253,185,19,0.3);
+  --bg: #080810;
+  --surface: #10101e;
+  --surface2: #16162a;
+  --surface3: #1c1c32;
+  --border: rgba(253,185,19,0.18);
+  --border-soft: rgba(255,255,255,0.06);
+  --text: #e8e8f0;
+  --text-dim: #8a8a9a;
+  --green: #2ecc71;
+  --red: #e74c3c;
+  --blue: #3498db;
+  --orange: #f39c12;
+  --sidebar-w: 220px;
+  --radius: 12px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); display: flex; height: 100vh; overflow: hidden; }
+
+/* ── SIDEBAR ── */
+#sidebar { width: var(–sidebar-w); min-width: var(–sidebar-w); background: var(–surface); border-right: 1px solid var(–border); display: flex; flex-direction: column; z-index: 10; }
+.sb-logo { padding: 20px 18px 16px; border-bottom: 1px solid var(–border-soft); }
+.sb-logo-badge { display: inline-flex; align-items: center; gap: 9px; }
+.sb-logo-icon { width: 32px; height: 32px; background: var(–yellow); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: ‘Syne’, sans-serif; font-weight: 800; font-size: 13px; color: #000; }
+.sb-logo-text span:first-child { display: block; font-family: ‘Syne’, sans-serif; font-weight: 800; font-size: 14px; color: var(–yellow); letter-spacing: 1px; }
+.sb-logo-text span:last-child { display: block; font-size: 10px; color: var(–text-dim); letter-spacing: 0.4px; }
+.sb-period { padding: 12px 16px; border-bottom: 1px solid var(–border-soft); }
+.sb-period label { font-size: 10px; color: var(–text-dim); text-transform: uppercase; letter-spacing: 1px; display: block; margin-bottom: 5px; }
+.sb-period select { width: 100%; background: var(–surface2); border: 1px solid var(–border); border-radius: 6px; color: var(–text); font-family: ‘DM Sans’, sans-serif; font-size: 12px; padding: 6px 10px; outline: none; cursor: pointer; }
+.sb-nav { flex: 1; padding: 10px 8px; overflow-y: auto; }
+.sb-section-label { font-size: 10px; color: var(–text-dim); text-transform: uppercase; letter-spacing: 1.5px; padding: 8px 10px 4px; font-weight: 600; }
+.nav-item { display: flex; align-items: center; gap: 9px; padding: 9px 11px; border-radius: 8px; cursor: pointer; transition: all 0.18s; margin-bottom: 2px; position: relative; overflow: hidden; border: 1px solid transparent; }
+.nav-item:hover { background: var(–yellow-dim); }
+.nav-item.active { background: var(–yellow-dim); border-color: var(–border); }
+.nav-item.active::before { content: ‘’; position: absolute; left: 0; top: 22%; bottom: 22%; width: 3px; background: var(–yellow); border-radius: 0 3px 3px 0; }
+.nav-icon { font-size: 15px; width: 20px; text-align: center; }
+.nav-label { font-size: 12px; font-weight: 500; color: var(–text-dim); flex: 1; }
+.nav-item.active .nav-label { color: var(–yellow); }
+.nav-badge { font-size: 10px; background: var(–yellow); color: #000; border-radius: 20px; padding: 1px 7px; font-weight: 700; font-family: ‘DM Mono’, monospace; }
+.sb-footer { padding: 12px 18px; border-top: 1px solid var(–border-soft); }
+.sb-ts { font-size: 10px; color: var(–text-dim); display: flex; align-items: center; gap: 5px; }
+.sb-ts-dot { width: 6px; height: 6px; border-radius: 50%; background: var(–green); box-shadow: 0 0 6px var(–green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+
+/* ── MAIN ── */
+#main { flex: 1; overflow-y: auto; padding: 26px 30px; scroll-behavior: smooth; }
+#main::-webkit-scrollbar { width: 4px; }
+#main::-webkit-scrollbar-thumb { background: var(–border); border-radius: 2px; }
+.section { display: none; animation: fadeIn 0.35s ease; }
+.section.active { display: block; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:none;} }
+
+/* ── SECTION HEADER ── */
+.section-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 24px; padding-bottom: 14px; border-bottom: 1px solid var(–border-soft); }
+.section-title { font-family: ‘Syne’, sans-serif; font-size: 24px; font-weight: 800; line-height: 1; }
+.section-title span { color: var(–yellow); }
+.section-sub { font-size: 12px; color: var(–text-dim); margin-top: 4px; }
+.meta-period { font-family: ‘DM Mono’, monospace; font-size: 11px; color: var(–yellow); background: var(–yellow-dim); border: 1px solid var(–border); padding: 4px 12px; border-radius: 20px; }
+
+/* ── GRIDS ── */
+.grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 14px; }
+.grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+.grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 14px; }
+.grid-2-1 { display: grid; grid-template-columns: 2fr 1fr; gap: 14px; }
+.row { margin-bottom: 18px; }
+
+/* ── KPI CARD ── */
+.kpi-card { background: var(–surface); border: 1px solid var(–border-soft); border-radius: var(–radius); padding: 18px; position: relative; overflow: hidden; transition: all 0.2s; }
+.kpi-card.clickable { cursor: pointer; }
+.kpi-card.clickable:hover { border-color: var(–border); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+.kpi-card.clickable:hover::after { content: ‘↗’; position: absolute; bottom: 12px; right: 14px; font-size: 16px; color: var(–yellow); opacity: 0.7; font-family: ‘Syne’, sans-serif; }
+.kpi-card.accent::before { content: ‘’; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(–yellow); }
+.kpi-label { font-size: 10px; color: var(–text-dim); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 5px; }
+.kpi-value { font-family: ‘Syne’, sans-serif; font-size: 36px; font-weight: 800; color: var(–yellow); line-height: 1; margin-bottom: 4px; }
+.kpi-sub { font-size: 11px; color: var(–text-dim); }
+.kpi-icon { position: absolute; right: 14px; top: 14px; font-size: 26px; opacity: 0.1; }
+.progress-bar { height: 3px; background: var(–surface3); border-radius: 2px; margin-top: 8px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(–yellow); border-radius: 2px; transition: width 1.2s cubic-bezier(0.4,0,0.2,1); }
+
+/* ── DELTA BADGE ── */
+.delta-row { display: flex; align-items: center; gap: 6px; margin-top: 5px; }
+.delta-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; font-family: ‘DM Mono’, monospace; font-weight: 600; padding: 2px 8px; border-radius: 20px; }
+.delta-good { background: rgba(46,204,113,0.12); color: #2ecc71; }
+.delta-bad  { background: rgba(231,76,60,0.12);  color: #e74c3c; }
+.delta-neutral { background: rgba(138,138,154,0.12); color: var(–text-dim); }
+.delta-period { font-size: 10px; color: var(–text-dim); }
+
+/* ── CHART CARD ── */
+.chart-card { background: var(–surface); border: 1px solid var(–border-soft); border-radius: var(–radius); padding: 18px; }
+.chart-card-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
+.chart-card-header-left { flex: 1; }
+.chart-card-title { font-family: ‘Syne’, sans-serif; font-size: 13px; font-weight: 700; color: var(–text); }
+.chart-card-sub { font-size: 11px; color: var(–text-dim); margin-top: 2px; }
+.chart-card-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.chart-legend { display: flex; gap: 10px; flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(–text-dim); }
+.legend-dot { width: 7px; height: 7px; border-radius: 50%; }
+
+/* ── INFO BUTTON ── */
+.info-btn { width: 22px; height: 22px; border-radius: 50%; background: var(–surface2); border: 1px solid var(–border-soft); color: var(–text-dim); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; transition: all 0.15s; flex-shrink: 0; font-family: ‘Syne’, sans-serif; }
+.info-btn:hover { border-color: var(–yellow); color: var(–yellow); background: var(–yellow-dim); }
+
+/* ── INFO POPOVER ── */
+#info-popover { display: none; position: fixed; z-index: 200; max-width: 300px; background: var(–surface2); border: 1px solid var(–border); border-radius: 10px; padding: 14px 16px; box-shadow: 0 12px 40px rgba(0,0,0,0.5); animation: fadeIn 0.2s ease; }
+#info-popover.open { display: block; }
+.pop-title { font-family: ‘Syne’, sans-serif; font-size: 13px; font-weight: 700; color: var(–yellow); margin-bottom: 6px; }
+.pop-desc { font-size: 12px; color: var(–text-dim); line-height: 1.6; }
+.pop-close { float: right; cursor: pointer; color: var(–text-dim); font-size: 14px; margin-left: 8px; }
+.pop-close:hover { color: var(–text); }
+
+/* ── TABLE ── */
+.data-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.data-table th { text-align: left; padding: 9px 11px; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(–text-dim); border-bottom: 1px solid var(–border-soft); font-weight: 600; }
+.data-table td { padding: 10px 11px; border-bottom: 1px solid var(–border-soft); vertical-align: middle; }
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tbody tr { transition: background 0.15s; }
+.data-table tbody tr.clickable-row { cursor: pointer; }
+.data-table tbody tr.clickable-row:hover { background: var(–yellow-dim); }
+
+/* ── TAGS ── */
+.tag { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: 600; letter-spacing: 0.3px; }
+.tag-green  { background: rgba(46,204,113,0.12); color: #2ecc71; }
+.tag-yellow { background: rgba(253,185,19,0.15);  color: #FDB913; }
+.tag-red    { background: rgba(231,76,60,0.12);   color: #e74c3c; }
+.tag-blue   { background: rgba(52,152,219,0.12);  color: #3498db; }
+.tag-orange { background: rgba(243,156,18,0.12);  color: #f39c12; }
+.mono { font-family: ‘DM Mono’, monospace; font-size: 11px; }
+
+/* ── SEARCH / FILTER ── */
+.search-bar { display: flex; align-items: center; gap: 8px; background: var(–surface2); border: 1px solid var(–border-soft); border-radius: 8px; padding: 7px 12px; margin-bottom: 12px; }
+.search-bar input { flex: 1; background: transparent; border: none; outline: none; color: var(–text); font-family: ‘DM Sans’, sans-serif; font-size: 12px; }
+.search-bar input::placeholder { color: var(–text-dim); }
+.filter-row { display: flex; gap: 7px; margin-bottom: 12px; flex-wrap: wrap; }
+.filter-btn { padding: 4px 12px; border-radius: 20px; border: 1px solid var(–border-soft); background: var(–surface2); color: var(–text-dim); font-size: 11px; cursor: pointer; transition: all 0.15s; font-family: ‘DM Sans’, sans-serif; }
+.filter-btn:hover, .filter-btn.active { border-color: var(–yellow); color: var(–yellow); background: var(–yellow-dim); }
+
+/* ── DETAIL PANEL ── */
+#detail-panel { display: none; position: fixed; top: 0; right: 0; bottom: 0; width: 400px; background: var(–surface); border-left: 1px solid var(–border); z-index: 100; overflow-y: auto; animation: slideIn 0.28s ease; }
+@keyframes slideIn { from{transform:translateX(20px);opacity:0;} to{transform:none;opacity:1;} }
+#detail-panel.open { display: block; }
+#panel-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 99; }
+#panel-overlay.open { display: block; }
+.panel-header { padding: 18px 20px; border-bottom: 1px solid var(–border-soft); display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; background: var(–surface); z-index: 1; }
+.panel-close { width: 28px; height: 28px; border-radius: 50%; background: var(–surface2); border: 1px solid var(–border-soft); color: var(–text-dim); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 14px; transition: all 0.15s; }
+.panel-close:hover { border-color: var(–yellow); color: var(–yellow); }
+.panel-body { padding: 20px; }
+.panel-id { font-family: ‘DM Mono’, monospace; font-size: 11px; color: var(–yellow); background: var(–yellow-dim); padding: 2px 9px; border-radius: 20px; display: inline-block; margin-bottom: 6px; }
+.panel-name { font-family: ‘Syne’, sans-serif; font-size: 19px; font-weight: 700; margin-bottom: 14px; }
+.revision-block { background: var(–surface2); border: 1px solid var(–border-soft); border-radius: 10px; padding: 14px; margin-bottom: 10px; }
+.revision-block.has-inc { border-left: 3px solid var(–red); }
+.revision-block.clean { border-left: 3px solid var(–green); }
+.rev-title { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(–text-dim); font-weight: 600; margin-bottom: 8px; }
+.rev-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+.rev-row:last-child { margin-bottom: 0; }
+.rev-key { font-size: 11px; color: var(–text-dim); }
+.rev-val { font-size: 12px; font-weight: 600; font-family: ‘DM Mono’, monospace; }
+
+/* ── AREA HEATMAP ── */
+.area-row { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-bottom: 1px solid var(–border-soft); }
+.area-row:last-child { border-bottom: none; }
+.area-name { width: 106px; font-size: 11px; color: var(–text-dim); flex-shrink: 0; }
+.area-bar-wrap { flex: 1; height: 7px; background: var(–surface3); border-radius: 4px; overflow: hidden; }
+.area-bar-fill { height: 100%; border-radius: 4px; background: var(–yellow); transition: width 1.2s ease; }
+.area-count { width: 32px; text-align: right; font-family: ‘DM Mono’, monospace; font-size: 11px; }
+.area-pct { width: 38px; text-align: right; font-size: 10px; color: var(–text-dim); }
+
+/* ── TIEMPOS ── */
+.tiempo-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 18px; }
+.tiempo-card { background: var(–surface2); border: 1px solid var(–border-soft); border-radius: 10px; padding: 14px; text-align: center; }
+.tiempo-label { font-size: 10px; color: var(–text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+.tiempo-value { font-family: ‘Syne’, sans-serif; font-size: 28px; font-weight: 800; color: var(–yellow); }
+.tiempo-unit { font-size: 10px; color: var(–text-dim); }
+
+/* ── BREADCRUMB ── */
+.breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(–text-dim); margin-bottom: 16px; }
+.breadcrumb a { color: var(–yellow); cursor: pointer; text-decoration: none; }
+.breadcrumb a:hover { text-decoration: underline; }
+
+/* ── DIVIDER ── */
+.divider { height: 1px; background: var(–border-soft); margin: 18px 0; }
+
+/* ── COMPARISON TABLE ── */
+.compare-card { background: var(–surface2); border: 1px solid var(–border-soft); border-radius: 10px; padding: 14px 16px; }
+.compare-title { font-size: 11px; color: var(–text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+.compare-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(–border-soft); font-size: 12px; }
+.compare-row:last-child { border-bottom: none; }
+.compare-label { color: var(–text-dim); }
+.compare-vals { display: flex; align-items: center; gap: 10px; }
+.compare-curr { font-family: ‘DM Mono’, monospace; font-weight: 600; color: var(–yellow); }
+.compare-prev { font-family: ‘DM Mono’, monospace; font-size: 11px; color: var(–text-dim); }
+</style>
+
+</head>
+<body>
+
+<!-- ═══ SIDEBAR ═══ -->
+
+<nav id="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-badge">
+      <div class="sb-logo-icon">FC</div>
+      <div class="sb-logo-text">
+        <span>CUALLI</span>
+        <span>Contraloría · TESI</span>
+      </div>
+    </div>
+  </div>
+  <div class="sb-period">
+    <label>Periodo activo</label>
+    <select id="period-select" onchange="changePeriod(this.value)">
+      <option value="all">Todos los periodos</option>
+      <option value="0">Oct 2024</option>
+      <option value="1">Nov 2024</option>
+      <option value="2">Dic 2024</option>
+      <option value="3">Ene 2025</option>
+      <option value="4">Feb 2025</option>
+      <option value="5" selected>Mar 2025</option>
+    </select>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-section-label">Análisis</div>
+    <div class="nav-item active" onclick="showSection('resumen')">
+      <span class="nav-icon">◈</span><span class="nav-label">Resumen Ejecutivo</span>
+    </div>
+    <div class="nav-item" onclick="showSection('areas')">
+      <span class="nav-icon">⬡</span><span class="nav-label">Por Área</span>
+    </div>
+    <div class="nav-item" onclick="showSection('expedientes')">
+      <span class="nav-icon">≡</span><span class="nav-label">Expedientes</span>
+      <span class="nav-badge" id="badge-exp">—</span>
+    </div>
+    <div class="sb-section-label" style="margin-top:8px">Histórico</div>
+    <div class="nav-item" onclick="showSection('tendencia')">
+      <span class="nav-icon">∿</span><span class="nav-label">Tendencia</span>
+    </div>
+    <div class="nav-item" onclick="showSection('tiempos')">
+      <span class="nav-icon">◷</span><span class="nav-label">Tiempos</span>
+    </div>
+  </div>
+  <div class="sb-footer">
+    <div class="sb-ts">
+      <div class="sb-ts-dot"></div>
+      <span id="ts-label">Cargando…</span>
+    </div>
+  </div>
+</nav>
+
+<!-- ═══ MAIN ═══ -->
+
+<main id="main">
+
+<!-- ① RESUMEN EJECUTIVO -->
+
+<section id="sec-resumen" class="section active">
+  <div class="section-header">
+    <div>
+      <div class="section-title">Resumen <span>Ejecutivo</span></div>
+      <div class="section-sub">Indicadores globales · Los KPIs son interactivos — haz click para explorar</div>
+    </div>
+    <span class="meta-period" id="h-period-resumen">Mar 2025</span>
+  </div>
+
+  <div class="grid-4 row" id="kpi-row"></div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px" class="row" id="compare-section"></div>
+
+  <div class="grid-2-1 row">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-header-left">
+          <div class="chart-card-title">Incidencias por Revisión y Área</div>
+          <div class="chart-card-sub">Barras apiladas por etapa del proceso</div>
+        </div>
+        <div class="chart-card-actions">
+          <div class="chart-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#FDB913"></div>1ª</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#f39c12"></div>2ª</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#e74c3c"></div>Final</div>
+          </div>
+          <button class="info-btn" onclick="showInfo('rev-bar',event)">?</button>
+        </div>
+      </div>
+      <canvas id="chart-rev-bar" height="190"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-header-left">
+          <div class="chart-card-title">Estatus Global</div>
+          <div class="chart-card-sub">Distribución de expedientes</div>
+        </div>
+        <button class="info-btn" onclick="showInfo('donut',event)">?</button>
+      </div>
+      <canvas id="chart-donut" height="190"></canvas>
+    </div>
+  </div>
+
+  <div class="chart-card row">
+    <div class="chart-card-header">
+      <div class="chart-card-header-left">
+        <div class="chart-card-title">Incidencias Totales por Área</div>
+        <div class="chart-card-sub">Barras de calor — largo = más incidencias acumuladas</div>
+      </div>
+      <button class="info-btn" onclick="showInfo('heatmap',event)">?</button>
+    </div>
+    <div id="area-heatmap"></div>
+  </div>
+</section>
+
+<!-- ② POR ÁREA -->
+
+<section id="sec-areas" class="section">
+  <div class="section-header">
+    <div>
+      <div class="section-title">Estatus por <span>Área</span></div>
+      <div class="section-sub">Desglose de revisiones e incidencias por área organizacional</div>
+    </div>
+    <span class="meta-period" id="h-period-areas">Mar 2025</span>
+  </div>
+  <div class="grid-2 row">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-header-left">
+          <div class="chart-card-title">Incidencias por Área y Revisión</div>
+          <div class="chart-card-sub">Acumulado apilado por etapa</div>
+        </div>
+        <div class="chart-card-actions">
+          <div class="chart-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:#FDB913"></div>1ª</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#f39c12"></div>2ª</div>
+            <div class="legend-item"><div class="legend-dot" style="background:#e74c3c"></div>Final</div>
+          </div>
+          <button class="info-btn" onclick="showInfo('area-stack',event)">?</button>
+        </div>
+      </div>
+      <canvas id="chart-area-stack" height="260"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-header-left">
+          <div class="chart-card-title">Tasa de Expedientes Limpios</div>
+          <div class="chart-card-sub">% sin ninguna incidencia detectada</div>
+        </div>
+        <button class="info-btn" onclick="showInfo('area-clean',event)">?</button>
+      </div>
+      <canvas id="chart-area-clean" height="260"></canvas>
+    </div>
+  </div>
+  <div class="chart-card row">
+    <div class="chart-card-header">
+      <div class="chart-card-header-left">
+        <div class="chart-card-title">Resumen por Área</div>
+        <div class="chart-card-sub">Click en una fila para ver expedientes del área</div>
+      </div>
+      <button class="info-btn" onclick="showInfo('area-table',event)">?</button>
+    </div>
+    <table class="data-table">
+      <thead><tr>
+        <th>Área</th><th>Expedientes</th><th>Inc. 1ª</th><th>Inc. 2ª</th><th>Inc. Final</th><th>Total Inc.</th><th>% Limpio</th><th>Estatus</th>
+      </tr></thead>
+      <tbody id="area-tbody"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ③ EXPEDIENTES -->
+
+<section id="sec-expedientes" class="section">
+  <div class="section-header">
+    <div>
+      <div class="section-title">Detalle de <span>Expedientes</span></div>
+      <div class="section-sub">Click en cualquier fila para ver la ficha completa</div>
+    </div>
+    <span class="meta-period" id="h-period-exp">Mar 2025</span>
+  </div>
+  <div id="exp-breadcrumb" class="breadcrumb" style="display:none">
+    <a onclick="clearDrillFilter()">← Resumen Ejecutivo</a>
+    <span>›</span>
+    <span id="bc-label">Filtro activo</span>
+  </div>
+  <div class="search-bar">
+    <span style="color:var(--text-dim);font-size:13px">⌕</span>
+    <input type="text" id="exp-search" placeholder="Buscar por ID o área…" oninput="filterExpedientes()"/>
+  </div>
+  <div class="filter-row" id="filter-row">
+    <button class="filter-btn active" onclick="setFilter('all',this)">Todos</button>
+      <button class="filter-btn" onclick="setFilter('Sin incidencias',this)">✓ Completos</button>
+      <button class="filter-btn" onclick="setFilter('En revisión',this)">⟳ En revisión</button>
+      <button class="filter-btn" onclick="setFilter('Con observaciones',this)">⚠ Con incidencias</button>
+  </div>
+  <div class="chart-card">
+    <table class="data-table">
+      <thead><tr>
+        <th>ID</th><th>Área</th><th>Mes</th><th>1ª Revisión</th><th>2ª Revisión</th><th>Rev. Final</th><th>Estatus</th>
+      </tr></thead>
+      <tbody id="exp-tbody"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ④ TENDENCIA -->
+
+<section id="sec-tendencia" class="section">
+  <div class="section-header">
+    <div>
+      <div class="section-title">Tendencia <span>Histórica</span></div>
+      <div class="section-sub">Evolución mensual de incidencias y volumen — últimos 6 meses</div>
+    </div>
+  </div>
+  <div class="chart-card row">
+    <div class="chart-card-header">
+      <div class="chart-card-header-left">
+        <div class="chart-card-title">Incidencias por Mes y Etapa de Revisión</div>
+        <div class="chart-card-sub">Líneas de tendencia</div>
+      </div>
+      <div class="chart-card-actions">
+        <div class="chart-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#FDB913"></div>1ª</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#f39c12"></div>2ª</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#e74c3c"></div>Final</div>
+        </div>
+        <button class="info-btn" onclick="showInfo('trend-line',event)">?</button>
+      </div>
+    </div>
+    <canvas id="chart-trend-line" height="210"></canvas>
+  </div>
+  <div class="grid-2 row">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-header-left">
+          <div class="chart-card-title">Volumen Mensual</div>
+          <div class="chart-card-sub">Expedientes procesados por mes</div>
+        </div>
+        <button class="info-btn" onclick="showInfo('trend-vol',event)">?</button>
+      </div>
+      <canvas id="chart-trend-vol" height="190"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-header-left">
+          <div class="chart-card-title">Tasa de Limpieza Mensual</div>
+          <div class="chart-card-sub">% expedientes sin ninguna incidencia</div>
+        </div>
+        <button class="info-btn" onclick="showInfo('trend-clean',event)">?</button>
+      </div>
+      <canvas id="chart-trend-clean" height="190"></canvas>
+    </div>
+  </div>
+</section>
+
+<!-- ⑤ TIEMPOS -->
+
+<section id="sec-tiempos" class="section">
+  <div class="section-header">
+    <div>
+      <div class="section-title">Tiempos de <span>Solventación</span></div>
+      <div class="section-sub">Días promedio para resolver incidencias por etapa y área</div>
+    </div>
+    <span class="meta-period" id="h-period-tiempos">Mar 2025</span>
+  </div>
+  <div class="tiempo-grid row" id="tiempo-kpi-row"></div>
+  <div class="grid-2 row">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-header-left">
+          <div class="chart-card-title">Promedio de Días por Revisión</div>
+          <div class="chart-card-sub">Cuánto tarda en solventarse cada etapa</div>
+        </div>
+        <button class="info-btn" onclick="showInfo('dias-rev',event)">?</button>
+      </div>
+      <canvas id="chart-dias-rev" height="200"></canvas>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-header-left">
+          <div class="chart-card-title">Días de Solventación por Área</div>
+          <div class="chart-card-sub">Promedio global — rojo = área lenta</div>
+        </div>
+        <button class="info-btn" onclick="showInfo('dias-area',event)">?</button>
+      </div>
+      <canvas id="chart-dias-area" height="200"></canvas>
+    </div>
+  </div>
+  <div class="chart-card row">
+    <div class="chart-card-header">
+      <div class="chart-card-header-left">
+        <div class="chart-card-title">Evolución Histórica del Tiempo de Solventación</div>
+        <div class="chart-card-sub">Tendencia mensual — baja es mejor</div>
+      </div>
+      <button class="info-btn" onclick="showInfo('trend-dias',event)">?</button>
+    </div>
+    <canvas id="chart-trend-dias" height="200"></canvas>
+  </div>
+</section>
+
+</main>
+
+<!-- ═══ DETAIL PANEL ═══ -->
+
+<div id="panel-overlay" onclick="closePanel()"></div>
+<div id="detail-panel">
+  <div class="panel-header">
+    <div>
+      <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px">Ficha de Expediente</div>
+      <div style="font-size:10px;color:var(--text-dim)">Detalle completo de revisiones</div>
+    </div>
+    <div class="panel-close" onclick="closePanel()">✕</div>
+  </div>
+  <div class="panel-body" id="panel-content"></div>
+</div>
+
+<!-- ═══ INFO POPOVER ═══ -->
+
+<div id="info-popover">
+  <span class="pop-close" onclick="closeInfo()">✕</span>
+  <div class="pop-title" id="pop-title"></div>
+  <div class="pop-desc" id="pop-desc"></div>
+</div>
+
+<!-- ═══ SCRIPT ═══ -->
+
+<script>
+/* ══════════════════════════════════════════════════════
+   HELP CONTENT — explicación de cada visualización
+   ══════════════════════════════════════════════════════ */
+const HELP = {
+  'rev-bar': {
+    title: 'Incidencias por Revisión y Área',
+    desc: 'Muestra cuántas incidencias se detectaron en cada etapa del proceso (1ª, 2ª y Revisión Final) para cada área. Una barra alta en "Final" indica que el área no resuelve sus observaciones en las primeras etapas.'
+  },
+  'donut': {
+    title: 'Estatus Global de Expedientes',
+    desc: '"Sin incidencias" son expedientes perfectos que pasaron todo el proceso sin observaciones. "Solventados" tuvieron incidencias pero ya fueron resueltas. "En revisión" están pendientes de 2ª revisión. "Con observaciones" tienen incidencias sin resolver en etapa final.'
+  },
+  'heatmap': {
+    title: 'Mapa de Calor por Área',
+    desc: 'La barra horizontal representa el porcentaje de incidencias del área respecto al área con más incidencias. El número al final es el total absoluto de incidencias. Permite identificar de un vistazo qué área requiere más atención.'
+  },
+  'area-stack': {
+    title: 'Incidencias Apiladas por Área',
+    desc: 'Cada barra representa el total de incidencias de un área, dividido por etapa de revisión. El color amarillo indica problemas detectados en 1ª revisión (temprana), el naranja en 2ª, y el rojo en la revisión final (más grave).'
+  },
+  'area-clean': {
+    title: 'Tasa de Expedientes Limpios',
+    desc: 'Porcentaje de expedientes del área que pasaron todas las revisiones sin una sola incidencia. Verde = 70%+ (área sólida). Amarillo = 50-70% (área regular). Rojo = menos del 50% (área crítica que requiere atención inmediata).'
+  },
+  'area-table': {
+    title: 'Tabla Resumen por Área',
+    desc: 'Vista consolidada del desempeño. "Excelente" = cero incidencias en el periodo. "Regular" = incidencias bajas, proceso controlado. "Atención" = incidencias frecuentes. "Crítico" = más de la mitad de los expedientes tienen observaciones sin resolver.'
+  },
+  'trend-line': {
+    title: 'Tendencia de Incidencias',
+    desc: 'Evolución mensual de incidencias por etapa. Si la línea baja con el tiempo, el proceso TESI está mejorando. Si la línea de "Revisión Final" sube, indica que las áreas no están solventando sus observaciones en las primeras etapas.'
+  },
+  'trend-vol': {
+    title: 'Volumen Mensual de Expedientes',
+    desc: 'Cantidad de expedientes procesados cada mes. Útil para contextualizar los datos de incidencias: un mes con más volumen naturalmente tendrá más incidencias en número absoluto. Compara siempre la tasa (%) y no el número absoluto.'
+  },
+  'trend-clean': {
+    title: 'Tasa de Limpieza Mensual',
+    desc: 'Porcentaje de expedientes que pasaron todas las revisiones sin incidencias. Esta es la métrica más importante de tendencia: si sube mes a mes, el proceso TESI está cumpliendo su objetivo de mejora continua.'
+  },
+  'dias-rev': {
+    title: 'Días Promedio por Revisión',
+    desc: 'Cuántos días tarda en promedio un área en solventar una incidencia dependiendo de la etapa en que se detectó. Es normal que la 1ª revisión tome más días (mayor número de incidencias). Las revisiones finales deberían solventarse más rápido.'
+  },
+  'dias-area': {
+    title: 'Días de Solventación por Área',
+    desc: 'Promedio de días que cada área tarda en resolver sus incidencias (sumando todas las etapas). Color verde = respuesta rápida (≤4 días). Amarillo = media (5-7 días). Rojo = lenta (más de 7 días). Áreas en rojo requieren seguimiento especial.'
+  },
+  'trend-dias': {
+    title: 'Evolución del Tiempo de Solventación',
+    desc: 'Tendencia histórica del tiempo de respuesta por etapa. Si la línea baja, las áreas están respondiendo más rápido. Una línea alta y estable indica un problema estructural en la velocidad de respuesta del área, no solo un mes atípico.'
+  }
+};
+
+/* ══════════════════════════════════════════════════════
+   DATOS — reemplazar con google.script.run en producción
+   ══════════════════════════════════════════════════════ */
+// Áreas reales de tu hoja TESI (columnas AQ-AZ)
+const AREAS = ['Cartera','Comercial','Crédito','Jurídico','PLD'];
+// Meses se reconstruyen dinámicamente con datos reales; estos son para modo demo
+const MESES = ['Ene 2025','Feb 2025','Mar 2025','Abr 2025','May 2025','Mar 2026'];
+
+function rnd(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function s(seed){ let x=Math.sin(seed+1)*10000; return x-Math.floor(x); }
+
+function generateData(){
+  const exps=[]; let id=1;
+  for(let m=0;m<6;m++){
+    for(let a=0;a<AREAS.length;a++){
+      const n=rnd(6,12); // más expedientes para reflejar volumen real (~236)
+      for(let i=0;i<n;i++){
+        const k=(m*100+a*10+i)*7+13;
+        // R1 y R2 (analíticas); RF solo si hubo incidencias persistentes
+        const r1i=s(k)>0.40?rnd(1,8):0;
+        const r2i=r1i>0&&s(k+1)>0.50?rnd(1,4):0;
+        const rFi=r2i>0&&s(k+2)>0.60?rnd(1,3):0;
+        const r1d=r1i>0?rnd(1,8):null;
+        const r2d=r2i>0?rnd(1,6):null;
+        const rFd=(r1i>0||r2i>0)?rnd(2,15):null;
+        // Estatus igual a valores reales mapeados
+        let estatus=rFi>0?'Con observaciones':r2i>0?'En revisión':'Sin incidencias';
+        // porArea — distribuye incidencias en R1 entre las áreas
+        const porArea_r1={Cartera:0,Comercial:0,'Crédito':0,'Jurídico':0,PLD:0};
+        const porArea_rf={Cartera:0,Comercial:0,'Crédito':0,'Jurídico':0,PLD:0};
+        if(r1i>0){ porArea_r1[AREAS[a]]=r1i; }
+        if(rFi>0){ porArea_rf[AREAS[a]]=rFi; }
+        exps.push({
+          id:`INT-25-${String(2000+id).padStart(4,'0')}-Cliente ${id}`,
+          cliente:`Cliente Demo ${id}`,
+          area:r1i>0?AREAS[a]:'Sin incidencias',
+          mes:MESES[m],mesIdx:m,
+          tipo:'Normal',
+          rev1:{inc:r1i,dias:r1d},
+          rev2:{inc:r2i,dias:r2d},
+          rev3:{inc:0,dias:null},
+          revF:{inc:rFi,dias:rFd},
+          estatus, porArea_r1, porArea_rf,
+          areasTexto:r1i>0?`📌 ${AREAS[a]}: ${r1i}`:'✅ Sin incidencias'
+        });
+        id++;
+      }
+    }
+  }
+  return exps;
+}
+
+const ALL_DATA = generateData();
+let currentPeriod='all', currentFilter='all', currentSearch='', filteredData=[...ALL_DATA];
+let drillFromKPI=false;
+
+/* ══ PERIOD ══ */
+function getFiltered(periodIdx){
+  const p = periodIdx!==undefined ? periodIdx : currentPeriod;
+  if(p==='all') return [...ALL_DATA];
+  return ALL_DATA.filter(e=>String(e.mesIdx)===String(p));
+}
+function getPrevious(periodIdx){
+  if(periodIdx==='all'){
+    // Comparar el mes más reciente vs el anterior
+    const idxList=[...new Set(ALL_DATA.map(e=>e.mesIdx))].sort((a,b)=>a-b);
+    if(idxList.length<2) return null;
+    const prev=idxList[idxList.length-2];
+    return ALL_DATA.filter(e=>e.mesIdx===prev);
+  }
+  const allIdx=[...new Set(ALL_DATA.map(e=>e.mesIdx))].sort((a,b)=>a-b);
+  const pos=allIdx.indexOf(parseInt(periodIdx));
+  if(pos<=0) return null;
+  return ALL_DATA.filter(e=>e.mesIdx===allIdx[pos-1]);
+}
+function changePeriod(v){
+  currentPeriod=v;
+  const label=v==='all'?'Todos los periodos':(ALL_DATA.find(e=>String(e.mesIdx)===v)||{mes:'—'}).mes;
+  document.querySelectorAll('[id^=h-period]').forEach(el=>el.textContent=label);
+  // Reset tendency charts so they regenerate with full data
+  chartTrendLine=null; chartTrendVol=null; chartTrendClean=null; chartTrendDias=null;
+  refreshAll();
+}
+function refreshAll(){
+  const d=getFiltered();
+  const prev=getPrevious(currentPeriod);
+  renderKPIs(d,prev);
+  renderComparisons(d,prev);
+  renderDonut(d);
+  renderRevBar(d);
+  renderAreaHeatmap(d);
+  renderAreaTable(d);
+  renderAreaStack(d);
+  renderAreaClean(d);
+  filteredData=[...d];
+  renderExpTable(d);
+  renderTiempoKPIs(d);
+  renderDiasRev(d);
+  renderDiasArea(d);
+  document.getElementById('badge-exp').textContent=d.length;
+}
+
+/* ══ DELTAS ══ */
+function delta(curr, prev, lowerIsBetter){
+  if(!prev && prev!==0) return null;
+  const diff=curr-prev;
+  const pct=prev>0?Math.round(Math.abs(diff)/prev*100):0;
+  const good=lowerIsBetter ? diff<0 : diff>0;
+  const neutral=diff===0;
+  return {diff, pct, good, neutral, sign:diff>0?'+':''};
+}
+function deltaHTML(d, prevLabel){
+  if(!d) return '';
+  const cls=d.neutral?'delta-neutral':d.good?'delta-good':'delta-bad';
+  const arrow=d.neutral?'→':d.diff>0?'↑':'↓';
+  return `<div class="delta-row">
+    <span class="delta-badge ${cls}">${arrow} ${d.sign}${d.diff} (${d.pct}%)</span>
+    <span class="delta-period">vs ${prevLabel}</span>
+  </div>`;
+}
+
+/* ══ KPI CARDS ══ */
+function renderKPIs(data, prev){
+  const total=data.length;
+  const sinInc=data.filter(e=>e.estatus==='Sin incidencias').length;
+  const conInc=data.filter(e=>e.rev1.inc>0).length;
+  const totalInc=data.reduce((s,e)=>s+e.rev1.inc+e.rev2.inc+e.revF.inc,0);
+  const pct=total>0?Math.round(sinInc/total*100):0;
+  const diasArr=data.filter(e=>e.rev1.dias).flatMap(e=>[e.rev1.dias,e.rev2.dias,e.revF.dias].filter(Boolean));
+  const avgDias=diasArr.length>0?(diasArr.reduce((a,b)=>a+b,0)/diasArr.length).toFixed(1):'—';
+
+  let prevLabel='', pTotal=null, pSinInc=null, pConInc=null, pTotalInc=null;
+  if(prev && prev.length>0){
+    const pi=currentPeriod==='all'?4:parseInt(currentPeriod)-1;
+    prevLabel=MESES[pi]||'periodo ant.';
+    pTotal=prev.length;
+    pSinInc=prev.filter(e=>e.estatus==='Sin incidencias').length;
+    pConInc=prev.filter(e=>e.rev1.inc>0).length;
+    pTotalInc=prev.reduce((s,e)=>s+e.rev1.inc+e.rev2.inc+e.revF.inc,0);
+  }
+
+  const dTotal=delta(total,pTotal,false);
+  const dSin=delta(sinInc,pSinInc,false);
+  const dInc=delta(totalInc,pTotalInc,true);
+
+  const kpis=[
+    {
+      label:'Expedientes Revisados', value:total, icon:'📋',
+      sub:'en el periodo activo', pct:null,
+      click:"navigateTo('expedientes','all')",
+      tip:'Ver todos los expedientes →',
+      delta:deltaHTML(dTotal,prevLabel), accent:false
+    },
+    {
+      label:'Sin Incidencias', value:sinInc, icon:'✓',
+      sub:`${pct}% del total`, pct,
+      click:"navigateTo('expedientes','Sin incidencias')",
+      tip:'Ver expedientes limpios →',
+      delta:deltaHTML(dSin,prevLabel), accent:true
+    },
+    {
+      label:'Con Incidencias', value:conInc, icon:'⚠',
+      sub:`${totalInc} incidencias totales`,
+      click:"navigateTo('expedientes','_con_inc')",
+      tip:'Ver expedientes con incidencias →',
+      delta:deltaHTML(dInc,prevLabel), accent:false
+    },
+    {
+      label:'Días Prom. Solventación', value:avgDias, icon:'◷',
+      sub:'promedio global',
+      click:"showSection('tiempos')",
+      tip:'Ver análisis de tiempos →',
+      delta:'', accent:false
+    }
+  ];
+
+  document.getElementById('kpi-row').innerHTML=kpis.map(k=>`
+    <div class="kpi-card clickable${k.accent?' accent':''}" onclick="${k.click}" title="${k.tip}">
+      <span class="kpi-icon">${k.icon}</span>
+      <div class="kpi-label">${k.label}</div>
+      <div class="kpi-value">${k.value}</div>
+      <div class="kpi-sub">${k.sub}</div>
+      ${k.delta}
+      ${k.pct!==null?`<div class="progress-bar"><div class="progress-fill" style="width:${k.pct}%"></div></div>`:''}
+    </div>
+  `).join('');
+}
+
+/* ══ COMPARISON CARDS ══ */
+function renderComparisons(curr, prev){
+  const sec=document.getElementById('compare-section');
+  if(!prev||prev.length===0){sec.innerHTML='';return;}
+  const pi=currentPeriod==='all'?4:parseInt(currentPeriod)-1;
+  const prevLabel=MESES[pi]||'Periodo anterior';
+
+  const metric=(label,cVal,pVal,lowerIsBetter)=>{
+    const d=delta(cVal,pVal,lowerIsBetter);
+    const cls=!d||d.neutral?'delta-neutral':d.good?'delta-good':'delta-bad';
+    const arrow=!d||d.neutral?'→':d.diff>0?'↑':'↓';
+    const sign=d&&d.diff>0?'+':'';
+    return `<div class="compare-row">
+      <span class="compare-label">${label}</span>
+      <div class="compare-vals">
+        <span class="compare-curr">${cVal}</span>
+        <span class="delta-badge ${cls}" style="font-size:10px">${arrow}${sign}${d?d.diff:0}</span>
+        <span class="compare-prev">${pVal}</span>
+      </div>
+    </div>`;
+  };
+
+  const cTotal=curr.length, pTotal=prev.length;
+  const cInc=curr.reduce((s,e)=>s+e.rev1.inc+e.rev2.inc+e.revF.inc,0);
+  const pInc=prev.reduce((s,e)=>s+e.rev1.inc+e.rev2.inc+e.revF.inc,0);
+  const cClean=curr.filter(e=>e.estatus==='Sin incidencias').length;
+  const pClean=prev.filter(e=>e.estatus==='Sin incidencias').length;
+  const cPct=cTotal>0?Math.round(cClean/cTotal*100):0;
+  const pPct=pTotal>0?Math.round(pClean/pTotal*100):0;
+  const cDias=(()=>{const a=curr.flatMap(e=>[e.rev1.dias,e.rev2.dias,e.revF.dias].filter(Boolean));return a.length?+(a.reduce((x,y)=>x+y,0)/a.length).toFixed(1):0;})();
+  const pDias=(()=>{const a=prev.flatMap(e=>[e.rev1.dias,e.rev2.dias,e.revF.dias].filter(Boolean));return a.length?+(a.reduce((x,y)=>x+y,0)/a.length).toFixed(1):0;})();
+
+  sec.innerHTML=`
+    <div class="compare-card">
+      <div class="compare-title">📋 Volumen vs ${prevLabel}</div>
+      ${metric('Expedientes',cTotal,pTotal,false)}
+      ${metric('Sin incidencias',cClean,pClean,false)}
+      ${metric('Con incidencias',curr.filter(e=>e.rev1.inc>0).length,prev.filter(e=>e.rev1.inc>0).length,true)}
+    </div>
+    <div class="compare-card">
+      <div class="compare-title">⚠ Calidad vs ${prevLabel}</div>
+      ${metric('Incidencias totales',cInc,pInc,true)}
+      ${metric('Inc. 1ª revisión',curr.reduce((s,e)=>s+e.rev1.inc,0),prev.reduce((s,e)=>s+e.rev1.inc,0),true)}
+      ${metric('Inc. revisión final',curr.reduce((s,e)=>s+e.revF.inc,0),prev.reduce((s,e)=>s+e.revF.inc,0),true)}
+    </div>
+    <div class="compare-card">
+      <div class="compare-title">◷ Eficiencia vs ${prevLabel}</div>
+      ${metric('% expedientes limpios',cPct+'%',pPct+'%',false)}
+      ${metric('Días prom. solventación',cDias,pDias,true)}
+      ${metric('Tasa de 1ª revisión limpia',Math.round(curr.filter(e=>e.rev1.inc===0).length/curr.length*100)+'%',Math.round(prev.filter(e=>e.rev1.inc===0).length/prev.length*100)+'%',false)}
+    </div>`;
+}
+
+/* ══ NAVIGATE FROM KPI (DRILL-THROUGH) ══ */
+function navigateTo(section, filter){
+  showSection(section);
+  if(section==='expedientes'){
+    drillFromKPI=true;
+    if(filter==='_con_inc'){
+      // custom: expedientes con al menos una incidencia
+      document.getElementById('exp-breadcrumb').style.display='flex';
+      document.getElementById('bc-label').textContent='Con incidencias';
+      const d=getFiltered();
+      const conInc=d.filter(e=>e.rev1.inc>0||e.rev2.inc>0||e.revF.inc>0);
+      renderExpRows(conInc);
+      // reset filter buttons visually
+      document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+    } else {
+      document.getElementById('exp-breadcrumb').style.display='flex';
+      document.getElementById('bc-label').textContent=filter==='all'?'Todos los expedientes':filter;
+      currentFilter=filter;
+      document.querySelectorAll('.filter-btn').forEach(b=>{
+        b.classList.toggle('active',b.textContent.includes(filter)||(filter==='all'&&b.textContent==='Todos'));
+      });
+      filteredData=getFiltered();
+      applyFilters();
+    }
+  }
+}
+
+function clearDrillFilter(){
+  drillFromKPI=false;
+  document.getElementById('exp-breadcrumb').style.display='none';
+  currentFilter='all';
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.toggle('active',b.textContent==='Todos'));
+  filteredData=getFiltered();
+  applyFilters();
+}
+
+/* ══ CHARTS ══ */
+let chartDonut,chartRevBar,chartAreaStack,chartAreaClean;
+let chartTrendLine,chartTrendVol,chartTrendClean;
+let chartDiasRev,chartDiasArea,chartTrendDias;
+
+function renderDonut(data){
+  const counts={'Sin incidencias':0,'En revisión':0,'Con observaciones':0};
+  data.forEach(e=>counts[e.estatus]=(counts[e.estatus]||0)+1);
+  if(chartDonut) chartDonut.destroy();
+  chartDonut=new Chart(document.getElementById('chart-donut'),{
+    type:'doughnut',
+    data:{labels:Object.keys(counts),datasets:[{data:Object.values(counts),
+      backgroundColor:['#2ecc71','#3498db','#e74c3c'],
+      borderColor:'#10101e',borderWidth:3,hoverOffset:6}]},
+    options:{cutout:'72%',plugins:{
+      legend:{position:'bottom',labels:{color:'#8a8a9a',font:{family:'DM Sans',size:10},padding:10,boxWidth:8}},
+      tooltip:tt()
+    }}
+  });
+}
+
+// Agrega incidencias por área usando porArea_r1 y porArea_rf
+function agruparPorArea(data){
+  const ba={};
+  AREAS.forEach(a=>ba[a]={r1:0,r2Total:0,rF:0,expTotal:0,expConInc:0});
+  data.forEach(e=>{
+    AREAS.forEach(a=>{
+      const r1=(e.porArea_r1&&e.porArea_r1[a])||0;
+      const rF=(e.porArea_rf&&e.porArea_rf[a])||0;
+      ba[a].r1+=r1;
+      ba[a].rF+=rF;
+      ba[a].expTotal++;
+      if(r1>0||rF>0) ba[a].expConInc++;
+    });
+    // R2 se distribuye proporcional al total de incidencias por área no tenemos detalle
+    // Asignamos el total de R2 al área principal del expediente
+    if(e.rev2&&e.rev2.inc>0 && e.area && ba[e.area]!==undefined){
+      ba[e.area].r2Total+=e.rev2.inc;
+    }
+  });
+  return ba;
+}
+
+function renderRevBar(data){
+  const ba=agruparPorArea(data);
+  if(chartRevBar) chartRevBar.destroy();
+  chartRevBar=new Chart(document.getElementById('chart-rev-bar'),{
+    type:'bar',
+    data:{labels:AREAS,datasets:[
+      ds('1ª Rev',AREAS.map(a=>ba[a].r1),'rgba(253,185,19,0.85)','s'),
+      ds('2ª Rev',AREAS.map(a=>ba[a].r2Total),'rgba(243,156,18,0.8)','s'),
+      ds('Final', AREAS.map(a=>ba[a].rF),'rgba(231,76,60,0.85)','s'),
+    ]},options:baseOpts()
+  });
+}
+
+function renderAreaStack(data){
+  const ba=agruparPorArea(data);
+  if(chartAreaStack) chartAreaStack.destroy();
+  chartAreaStack=new Chart(document.getElementById('chart-area-stack'),{
+    type:'bar',
+    data:{labels:AREAS,datasets:[
+      ds('1ª',AREAS.map(a=>ba[a].r1),'rgba(253,185,19,0.85)','s'),
+      ds('2ª',AREAS.map(a=>ba[a].r2Total),'rgba(243,156,18,0.8)','s'),
+      ds('Final',AREAS.map(a=>ba[a].rF),'rgba(231,76,60,0.8)','s'),
+    ]},options:baseOpts()
+  });
+}
+
+function renderAreaClean(data){
+  // % de expedientes en que el área NO tuvo incidencias en ninguna revisión
+  const ba={};AREAS.forEach(a=>ba[a]={total:0,limpios:0});
+  data.forEach(e=>{
+    AREAS.forEach(a=>{
+      ba[a].total++;
+      const r1=(e.porArea_r1&&e.porArea_r1[a])||0;
+      const rF=(e.porArea_rf&&e.porArea_rf[a])||0;
+      if(r1===0&&rF===0) ba[a].limpios++;
+    });
+  });
+  const pcts=AREAS.map(a=>ba[a].total>0?Math.round(ba[a].limpios/ba[a].total*100):0);
+  if(chartAreaClean) chartAreaClean.destroy();
+  chartAreaClean=new Chart(document.getElementById('chart-area-clean'),{
+    type:'bar',
+    data:{labels:AREAS,datasets:[{label:'% Sin incidencias',data:pcts,
+      backgroundColor:pcts.map(p=>p>=80?'rgba(46,204,113,0.8)':p>=60?'rgba(253,185,19,0.8)':'rgba(231,76,60,0.8)'),
+      borderRadius:6}]},
+    options:{...baseOpts(),scales:{x:xAx(),y:{...yAx(),max:100,ticks:{color:'#8a8a9a',callback:v=>v+'%'}}}}
+  });
+}
+
+function renderAreaHeatmap(data){
+  const ba=agruparPorArea(data);
+  const max=Math.max(...AREAS.map(a=>ba[a].r1+ba[a].r2Total+ba[a].rF),1);
+  document.getElementById('area-heatmap').innerHTML=AREAS.map(a=>{
+    const total=ba[a].r1+ba[a].r2Total+ba[a].rF;
+    return`<div class="area-row">
+      <span class="area-name">${a}</span>
+      <div class="area-bar-wrap"><div class="area-bar-fill" style="width:${Math.round(total/max*100)}%"></div></div>
+      <span class="area-count">${total}</span>
+      <span class="area-pct">${Math.round(total/max*100)}%</span>
+    </div>`;
+  }).join('');
+}
+
+function renderAreaTable(data){
+  const ba=agruparPorArea(data);
+  const total=data.length;
+  document.getElementById('area-tbody').innerHTML=AREAS.map(a=>{
+    const d=ba[a],ti=d.r1+d.r2Total+d.rF;
+    const pctLimpio=total>0?Math.round((total-d.expConInc)/total*100):0;
+    const tag=ti===0?'tag-green':pctLimpio>=80?'tag-yellow':pctLimpio>=60?'tag-orange':'tag-red';
+    const lbl=ti===0?'Sin inc.':pctLimpio>=80?'Regular':pctLimpio>=60?'Atención':'Crítico';
+    return`<tr class="clickable-row" onclick="navigateTo('expedientes','_area_${a}'); _areaFilter('${a}')">
+      <td><strong>${a}</strong></td>
+      <td class="mono">${total}</td>
+      <td class="mono" style="color:#FDB913">${d.r1}</td>
+      <td class="mono" style="color:#f39c12">${d.r2Total}</td>
+      <td class="mono" style="color:#e74c3c">${d.rF}</td>
+      <td class="mono"><strong>${ti}</strong></td>
+      <td class="mono">${pctLimpio}%</td>
+      <td><span class="tag ${tag}">${lbl}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function _areaFilter(area){
+  // called after navigateTo sets section, now apply area filter
+  setTimeout(()=>{
+    document.getElementById('exp-search').value=area;
+    document.getElementById('bc-label').textContent='Área: '+area;
+    currentSearch=area.toLowerCase();
+    filteredData=getFiltered();
+    applyFilters();
+  },50);
+}
+
+/* ══ EXP TABLE ══ */
+function renderExpTable(data){filteredData=[...data];applyFilters();}
+function renderExpRows(rows){
+  const tbody=document.getElementById('exp-tbody');
+  tbody.innerHTML=rows.map(e=>{
+    const tagClass={'Sin incidencias':'tag-green','En revisión':'tag-blue','Con observaciones':'tag-red','Solventado':'tag-yellow'}[e.estatus]||'tag-blue';
+    const r1t=e.rev1.inc>0?`<span style="color:#FDB913">${e.rev1.inc} inc</span>`:`<span style="color:#2ecc71">✓</span>`;
+    const r2t=e.rev2.inc>0?`<span style="color:#f39c12">${e.rev2.inc} inc</span>`:`<span style="color:#2ecc71">✓</span>`;
+    const rFt=e.revF.inc>0?`<span style="color:#e74c3c">${e.revF.inc} inc</span>`:`<span style="color:#2ecc71">✓</span>`;
+    const nombre=e.cliente||e.id;
+    return `<tr class="clickable-row" onclick="openPanel('${e.id.replace(/'/g,"\\'")}')">
+      <td class="mono" style="color:var(--yellow);font-size:10px">${e.id}</td>
+      <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${nombre}">${nombre}</td>
+      <td class="mono" style="color:var(--text-dim)">${e.mes}</td>
+      <td>${r1t}</td><td>${r2t}</td><td>${rFt}</td>
+      <td><span class="tag ${tagClass}">${e.estatus}</span></td>
+    </tr>`;
+  }).join('');
+}
+function applyFilters(){
+  let d=[...filteredData];
+  if(currentFilter!=='all') d=d.filter(e=>e.estatus===currentFilter);
+  if(currentSearch) d=d.filter(e=>e.id.toLowerCase().includes(currentSearch)||e.area.toLowerCase().includes(currentSearch));
+  renderExpRows(d);
+}
+function filterExpedientes(){currentSearch=document.getElementById('exp-search').value.toLowerCase();applyFilters();}
+function setFilter(f,btn){
+  currentFilter=f;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilters();
+}
+
+/* ══ TENDENCIA ══ */
+function renderTendencia(){
+  const bm=MESES.map((_,i)=>{
+    const d=ALL_DATA.filter(e=>e.mesIdx===i);
+    return{r1:d.reduce((s,e)=>s+e.rev1.inc,0),r2:d.reduce((s,e)=>s+e.rev2.inc,0),rF:d.reduce((s,e)=>s+e.revF.inc,0),
+      t:d.length,c:d.filter(e=>e.estatus==='Sin incidencias').length};
+  });
+  if(chartTrendLine) chartTrendLine.destroy();
+  chartTrendLine=new Chart(document.getElementById('chart-trend-line'),{
+    type:'line',
+    data:{labels:MESES,datasets:[lds('1ª Rev',bm.map(m=>m.r1),'#FDB913'),lds('2ª Rev',bm.map(m=>m.r2),'#f39c12'),lds('Final',bm.map(m=>m.rF),'#e74c3c')]},
+    options:baseOpts()
+  });
+  if(chartTrendVol) chartTrendVol.destroy();
+  chartTrendVol=new Chart(document.getElementById('chart-trend-vol'),{
+    type:'bar',
+    data:{labels:MESES,datasets:[{label:'Expedientes',data:bm.map(m=>m.t),
+      backgroundColor:'rgba(253,185,19,0.25)',borderColor:'#FDB913',borderWidth:2,borderRadius:5}]},
+    options:baseOpts()
+  });
+  if(chartTrendClean) chartTrendClean.destroy();
+  chartTrendClean=new Chart(document.getElementById('chart-trend-clean'),{
+    type:'line',
+    data:{labels:MESES,datasets:[lds('% Limpio',bm.map(m=>m.t>0?Math.round(m.c/m.t*100):0),'#2ecc71')]},
+    options:{...baseOpts(),scales:{x:xAx(),y:{...yAx(),max:100,ticks:{color:'#8a8a9a',callback:v=>v+'%'}}}}
+  });
+}
+
+/* ══ TIEMPOS ══ */
+function renderTiempoKPIs(data){
+  const avg=arr=>arr.length>0?(arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1):'—';
+  document.getElementById('tiempo-kpi-row').innerHTML=[
+    {l:'1ª Revisión',v:avg(data.filter(e=>e.rev1.dias).map(e=>e.rev1.dias))},
+    {l:'2ª Revisión',v:avg(data.filter(e=>e.rev2.dias).map(e=>e.rev2.dias))},
+    {l:'Revisión Final',v:avg(data.filter(e=>e.revF.dias).map(e=>e.revF.dias))},
+  ].map(t=>`<div class="tiempo-card"><div class="tiempo-label">${t.l}</div><div class="tiempo-value">${t.v}</div><div class="tiempo-unit">días promedio</div></div>`).join('');
+}
+function renderDiasRev(data){
+  const avg=arr=>arr.length>0?parseFloat((arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1)):0;
+  if(chartDiasRev) chartDiasRev.destroy();
+  chartDiasRev=new Chart(document.getElementById('chart-dias-rev'),{
+    type:'bar',
+    data:{labels:['1ª Revisión','2ª Revisión','Rev. Final'],datasets:[{label:'Días prom.',
+      data:[avg(data.filter(e=>e.rev1.dias).map(e=>e.rev1.dias)),avg(data.filter(e=>e.rev2.dias).map(e=>e.rev2.dias)),avg(data.filter(e=>e.revF.dias).map(e=>e.revF.dias))],
+      backgroundColor:['rgba(253,185,19,0.85)','rgba(243,156,18,0.8)','rgba(231,76,60,0.8)'],borderRadius:8}]},
+    options:baseOpts()
+  });
+}
+function renderDiasArea(data){
+  const avg=arr=>arr.length>0?parseFloat((arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1)):0;
+  const byA=AREAS.map(a=>{
+    const d=data.filter(e=>e.area===a).flatMap(e=>[e.rev1.dias,e.rev2.dias,e.revF.dias].filter(Boolean));
+    return avg(d);
+  });
+  if(chartDiasArea) chartDiasArea.destroy();
+  chartDiasArea=new Chart(document.getElementById('chart-dias-area'),{
+    type:'bar',
+    data:{labels:AREAS,datasets:[{label:'Días',data:byA,
+      backgroundColor:byA.map(d=>d===0?'rgba(46,204,113,0.7)':d<=4?'rgba(253,185,19,0.8)':d<=7?'rgba(243,156,18,0.8)':'rgba(231,76,60,0.8)'),
+      borderRadius:5}]},
+    options:baseOpts()
+  });
+}
+function renderTrendDias(){
+  const avg=arr=>arr.length>0?parseFloat((arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1)):null;
+  const bm=MESES.map((_,i)=>{
+    const d=ALL_DATA.filter(e=>e.mesIdx===i);
+    return{r1:avg(d.filter(e=>e.rev1.dias).map(e=>e.rev1.dias)),r2:avg(d.filter(e=>e.rev2.dias).map(e=>e.rev2.dias)),rF:avg(d.filter(e=>e.revF.dias).map(e=>e.revF.dias))};
+  });
+  if(chartTrendDias) chartTrendDias.destroy();
+  chartTrendDias=new Chart(document.getElementById('chart-trend-dias'),{
+    type:'line',
+    data:{labels:MESES,datasets:[lds('1ª Rev',bm.map(m=>m.r1),'#FDB913'),lds('2ª Rev',bm.map(m=>m.r2),'#f39c12'),lds('Final',bm.map(m=>m.rF),'#e74c3c')]},
+    options:baseOpts()
+  });
+}
+
+/* ══ DETAIL PANEL ══ */
+function openPanel(id){
+  const exp=ALL_DATA.find(e=>e.id===id); if(!exp) return;
+  const tc={'Sin incidencias':'tag-green','En revisión':'tag-blue','Con observaciones':'tag-red','Solventado':'tag-yellow'};
+  const rev=(lbl,r,color)=>`<div class="revision-block ${r.inc>0?'has-inc':'clean'}">
+    <div class="rev-title">${lbl}</div>
+    <div class="rev-row"><span class="rev-key">Incidencias</span><span class="rev-val" style="color:${r.inc>0?color:'#2ecc71'}">${r.inc>0?r.inc:'Ninguna'}</span></div>
+    ${r.dias!=null?`<div class="rev-row"><span class="rev-key">Días</span><span class="rev-val">${r.dias}d</span></div>`:''}
+  </div>`;
+  const totalInc=exp.rev1.inc+exp.rev2.inc+(exp.rev3?exp.rev3.inc:0)+exp.revF.inc;
+  const areasHtml=exp.areasTexto&&!exp.areasTexto.includes('Sin')
+    ?`<div style="font-size:11px;color:var(--text-dim);margin-top:6px;line-height:1.7;white-space:pre-line">${exp.areasTexto}</div>`:'';
+  document.getElementById('panel-content').innerHTML=`
+    <div class="panel-id">${exp.id}</div>
+    <div class="panel-name" style="font-size:15px;line-height:1.3">${exp.cliente||exp.id}</div>
+    <div style="display:flex;gap:7px;margin:10px 0 14px;flex-wrap:wrap">
+      <span class="tag ${tc[exp.estatus]||'tag-blue'}">${exp.estatus}</span>
+      <span class="tag tag-blue" style="font-size:9px">${exp.mes}</span>
+      ${exp.tipo?`<span class="tag tag-orange" style="font-size:9px">${exp.tipo}</span>`:''}
+    </div>
+    ${areasHtml}
+    <div class="divider"></div>
+    <div style="font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Revisiones</div>
+    ${rev('1ª Revisión',exp.rev1,'#FDB913')}
+    ${rev('2ª Revisión',exp.rev2,'#f39c12')}
+    ${rev('Revisión Final',exp.revF,'#e74c3c')}
+    <div class="divider"></div>
+    <div style="font-size:11px;color:var(--text-dim);margin-bottom:4px">Total incidencias acumuladas</div>
+    <div style="font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:${totalInc>0?'var(--red)':'var(--green)'}">${totalInc}</div>
+    ${exp.diasTotal!=null?`<div style="font-size:11px;color:var(--text-dim);margin-top:8px">⏱ ${exp.diasTotal} días totales del proceso</div>`:''}
+  `;
+  document.getElementById('detail-panel').classList.add('open');
+  document.getElementById('panel-overlay').classList.add('open');
+}
+function closePanel(){
+  document.getElementById('detail-panel').classList.remove('open');
+  document.getElementById('panel-overlay').classList.remove('open');
+}
+
+/* ══ INFO POPOVER ══ */
+function showInfo(key, e){
+  e.stopPropagation();
+  const h=HELP[key]; if(!h) return;
+  const pop=document.getElementById('info-popover');
+  document.getElementById('pop-title').textContent=h.title;
+  document.getElementById('pop-desc').textContent=h.desc;
+  const rect=e.target.getBoundingClientRect();
+  pop.style.top=(rect.bottom+8)+'px';
+  pop.style.left=Math.min(rect.left,window.innerWidth-320)+'px';
+  pop.classList.add('open');
+}
+function closeInfo(){document.getElementById('info-popover').classList.remove('open');}
+document.addEventListener('click',e=>{
+  const pop=document.getElementById('info-popover');
+  if(!pop.contains(e.target)) pop.classList.remove('open');
+});
+
+/* ══ NAV ══ */
+const SECTIONS=['resumen','areas','expedientes','tendencia','tiempos'];
+function showSection(id){
+  SECTIONS.forEach(s=>{
+    document.getElementById(`sec-${s}`).classList.toggle('active',s===id);
+  });
+  document.querySelectorAll('.nav-item').forEach((el,i)=>{
+    el.classList.toggle('active',SECTIONS[i]===id);
+  });
+  if(id==='tendencia'&&!chartTrendLine) renderTendencia();
+  if(id==='tiempos'&&!chartTrendDias) renderTrendDias();
+}
+
+/* ══ CHART HELPERS ══ */
+function xAx(){return{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#8a8a9a',font:{family:'DM Sans',size:10}}};}
+function yAx(){return{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#8a8a9a',font:{family:'DM Sans',size:10}},border:{dash:[3,3]}};}
+function tt(){return{backgroundColor:'#16162a',titleColor:'#e8e8f0',bodyColor:'#8a8a9a',borderColor:'rgba(253,185,19,0.25)',borderWidth:1};}
+function baseOpts(){return{responsive:true,plugins:{legend:{display:false},tooltip:tt()},scales:{x:xAx(),y:yAx()}};}
+function ds(label,data,color,stack){return{label,data,backgroundColor:color,borderRadius:4,stack};}
+function lds(label,data,color){
+  const rgb=color.startsWith('#')?hexRgb(color):'46,204,113';
+  return{label,data,borderColor:color,backgroundColor:`rgba(${rgb},0.08)`,borderWidth:2,
+    pointBackgroundColor:color,pointRadius:4,pointHoverRadius:6,tension:0.4,fill:true};
+}
+function hexRgb(h){
+  const r=parseInt(h.slice(1,3),16),g=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);
+  return`${r},${g},${b}`;
+}
+
+/* ══ PROCESAR DATOS REALES DESDE APPS SCRIPT ══════════════════ */
+function procesarDatosReales(data) {
+  ALL_DATA.length = 0;
+  data.forEach(function(e){ ALL_DATA.push(e); });
+
+  // ── Detectar áreas reales desde porArea y area ──
+  const areasSet = new Set();
+  const AREAS_FIJAS = ['Cartera','Comercial','Crédito','Jurídico','PLD'];
+  ALL_DATA.forEach(function(e){
+    if(e.porArea) Object.keys(e.porArea).forEach(function(a){ if(e.porArea[a]>0) areasSet.add(a); });
+    if(e.area && e.area !== 'Sin área' && AREAS_FIJAS.indexOf(e.area) !== -1) areasSet.add(e.area);
+  });
+  const areasDetectadas = AREAS_FIJAS.filter(function(a){ return areasSet.has(a); });
+  if(areasDetectadas.length > 0){
+    AREAS.length = 0;
+    areasDetectadas.forEach(function(a){ AREAS.push(a); });
+  }
+
+  // ── Reconstruir MESES ──
+  const mesesSet = {};
+  ALL_DATA.forEach(function(e){
+    if(e.mes && e.mes !== 'Sin fecha') mesesSet[e.mesIdx] = e.mes;
+  });
+  const mesesOrdenados = Object.keys(mesesSet).map(Number).sort(function(a,b){return a-b;});
+  MESES.length = 0;
+  mesesOrdenados.forEach(function(idx){ MESES.push(mesesSet[idx]); });
+
+  // ── Selector de periodo ──
+  const sel = document.getElementById('period-select');
+  sel.innerHTML = '<option value="all">Todos los periodos</option>';
+  mesesOrdenados.forEach(function(idx){
+    const opt = document.createElement('option');
+    opt.value = idx;
+    opt.textContent = mesesSet[idx];
+    sel.appendChild(opt);
+  });
+
+  const ultimoIdx = mesesOrdenados.length > 0 ? mesesOrdenados[mesesOrdenados.length-1] : 'all';
+  const ultimoLabel = mesesSet[ultimoIdx] || 'Todos';
+  currentPeriod = String(ultimoIdx);
+  sel.value = currentPeriod;
+  document.querySelectorAll('[id^=h-period]').forEach(function(el){ el.textContent = ultimoLabel; });
+
+  document.getElementById('ts-label').textContent =
+    'Datos reales · ' + ALL_DATA.length + ' expedientes';
+
+  refreshAll();
+}
+
+/* ══ INIT ══ */
+Chart.defaults.color='#8a8a9a';
+Chart.defaults.font.family='DM Sans';
+
+function init(){
+  const now=new Date();
+  document.getElementById('ts-label').textContent=`${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+  document.getElementById('period-select').value='5';
+  changePeriod('5');
+}
+
+// ── Conexión con Apps Script ──────────────────────────────────
+// Si corre dentro de Apps Script, carga datos reales.
+// Si corre como archivo HTML suelto en el navegador, usa datos demo.
+if (typeof google !== 'undefined' && google.script) {
+  document.getElementById('ts-label').textContent = 'Cargando datos…';
+  google.script.run
+    .withSuccessHandler(function(data) {
+      if (data && data.length > 0) {
+        procesarDatosReales(data);
+      } else {
+        // Sin datos reales → usar demo
+        console.warn('Sin datos reales, usando demo');
+        init();
+      }
+    })
+    .withFailureHandler(function(err) {
+      console.error('Error leyendo TESI:', err);
+      init();
+    })
+    .getDatosTESI();
+} else {
+  // Modo local / browser → datos demo
+  init();
+}
+</script>
+
+</body>
+</html>
